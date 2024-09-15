@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * The template for displaying the footer
+ *
+ * Contains the closing of the #content div and all content after.
+ *
+ * @link https://developer.wordpress.org/themes/basics/template-files/#template-partials
+ *
+ * @package bean.dev
+ */
+
+?>
+
+<footer id="colophon" class="site-footer">
+	<div class="site-info layout_container">
+		<div class="footer-container">
+			<div class="footer-section w-[33%]">
+				<h3>THÔNG TIN CHUNG</h3>
+				<p>Với sứ mệnh "Khách hàng là ưu tiên số 1" chúng tôi luôn mang lại giá trị tốt nhất</p>
+				<p><strong>Địa chỉ:</strong> 70 Lữ Gia, Phường 15, Quận 11, TP. Hồ Chí Minh</p>
+				<p><strong>Điện thoại: <a href="#"> <span class="highlight"> 1900 6750</span></a></strong></p>
+				<p><strong>Email: <a href="#"> <span class="highlight"> suport@gmail.com</span></a></strong></p>
+			</div>
+
+			<div class="footer-section w-[20%]">
+				<h3>CHÍNH SÁCH</h3>
+				<?php
+				$parent_category = get_category_by_slug('chinh-sach');
+				$parent_category_id = $parent_category->term_id;
+				$child_categories = get_categories(array(
+					'child_of' => $parent_category_id,
+					'hide_empty' => false, // Hiển thị cả những danh mục rỗng
+				));
+
+				if (!empty($child_categories)) {
+					foreach ($child_categories as $child_category) {
+						printf('<a href="%s"><li>%s</li></a>', get_category_link($child_category->term_id), $child_category->name);
+					}
+				} else {
+					echo 'Không có danh mục con nào.';
+				}
+				?>
+			</div>
+
+			<div class="footer-section w-[20%]">
+				<h3>HỖ TRỢ</h3>
+				<li>Kinh doanh: <a href="#"> <strong class="highlight"> 1900 800 111</strong></a></li>
+				<li>Bảo hành: <a href="#"> <strong class="highlight"> 1900 800 222</strong></a></li>
+				<li>Kiếu nại: <a href="#"> <strong class="highlight"> 1900 800 333</strong></a></li>
+				<?php $contact_page = get_page_by_path('lien-he'); ?>
+				<a href="<?php echo get_permalink($contact_page->ID) ?>">
+					<li>Liên hệ</li>
+				</a>
+			</div>
+
+			<div class="footer-section w-[27%]">
+				<h3>PHƯƠNG THỨC THANH TOÁN</h3>
+				<div class="payment-methods">
+					<div><img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/payment-1.webp" alt="Mastercard"></div>
+					<div><img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/payment-2.webp" alt="Visa"></div>
+					<div><img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/payment-3.webp" alt="JCB"></div>
+					<div><img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/payment-4.webp" alt="ZaloPay"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="footer-bottom">
+			© Bản quyền thuộc về <strong>Mr. Bean</strong> | Cung cấp bởi <strong>Bean</strong>
+		</div>
+	</div><!-- .site-info -->
+</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<?php wp_footer(); ?>
+
+</body>
+
+</html>
