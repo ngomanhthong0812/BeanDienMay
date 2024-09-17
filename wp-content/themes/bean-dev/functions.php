@@ -15,8 +15,8 @@ if (! defined('_S_VERSION')) {
 
 function my_theme_enqueue_theme()
 {
-	wp_enqueue_style('output', get_template_directory_uri() . './dist/output.css', array());
-	wp_enqueue_style('custom-css', get_template_directory_uri() . '/custom.css');
+	wp_enqueue_style('output', get_template_directory_uri() . '/dist/output.css', array());
+	wp_enqueue_style('custom-css', get_template_directory_uri() . '/custom.css', array(), '1.2');
 }
 
 add_action('wp_enqueue_scripts', 'my_theme_enqueue_theme');
@@ -195,85 +195,6 @@ if (class_exists('WooCommerce')) {
 	require get_template_directory() . '/inc/woocommerce.php';
 }
 
-function tao_custom_post_type_san_pham()
-{
-	$labels = array(
-		'name'               => _x('Sản phẩm', 'Post Type General Name', 'text_domain'),
-		'singular_name'      => _x('Sản phẩm', 'Post Type Singular Name', 'text_domain'),
-		'menu_name'          => __('Sản phẩm', 'text_domain'),
-		'name_admin_bar'     => __('Sản phẩm', 'text_domain'),
-		'archives'           => __('Lưu trữ sản phẩm', 'text_domain'),
-		'attributes'         => __('Thuộc tính sản phẩm', 'text_domain'),
-		'parent_item_colon'  => __('Sản phẩm cha:', 'text_domain'),
-		'all_items'          => __('Tất cả sản phẩm', 'text_domain'),
-		'add_new_item'       => __('Thêm mới sản phẩm', 'text_domain'),
-		'add_new'            => __('Thêm sản phẩm', 'text_domain'),
-		'new_item'           => __('Sản phẩm mới', 'text_domain'),
-		'edit_item'          => __('Chỉnh sửa sản phẩm', 'text_domain'),
-		'update_item'        => __('Cập nhật sản phẩm', 'text_domain'),
-		'view_item'          => __('Xem sản phẩm', 'text_domain'),
-		'view_items'         => __('Xem các sản phẩm', 'text_domain'),
-		'search_items'       => __('Tìm kiếm sản phẩm', 'text_domain'),
-		'not_found'          => __('Không tìm thấy', 'text_domain'),
-		'not_found_in_trash' => __('Không tìm thấy trong thùng rác', 'text_domain'),
-	);
-
-	$args = array(
-		'label'              => __('Sản phẩm', 'text_domain'),
-		'description'        => __('Chứa các sản phẩm của bạn', 'text_domain'),
-		'labels'             => $labels,
-		'supports'           => array('title', 'editor', 'thumbnail', 'excerpt', 'revisions'),
-		'hierarchical'       => false,
-		'public'             => true,
-		'show_ui'            => true,
-		'show_in_menu'       => true,
-		'menu_position'      => 5,
-		'show_in_admin_bar'  => true,
-		'show_in_nav_menus'  => true,
-		'can_export'         => true,
-		'has_archive'        => true,
-		'exclude_from_search' => false,
-		'publicly_queryable' => true,
-		'capability_type'    => 'post',
-		'menu_icon'          => 'dashicons-portfolio', // Biểu tượng trên menu quản trị
-		'rewrite'            => array('slug' => 'san-pham'), // Đường dẫn cho custom post type
-	);
-
-	register_post_type('san-pham', $args);
-}
-
-add_action('init', 'tao_custom_post_type_san_pham', 0);
-
-
-function tao_taxonomy_danh_muc_san_pham()
-{
-	$labels = array(
-		'name'              => _x('Danh mục sản phẩm', 'taxonomy general name', 'text_domain'),
-		'singular_name'     => _x('Danh mục sản phẩm', 'taxonomy singular name', 'text_domain'),
-		'search_items'      => __('Tìm kiếm danh mục sản phẩm', 'text_domain'),
-		'all_items'         => __('Tất cả danh mục sản phẩm', 'text_domain'),
-		'parent_item'       => __('Danh mục sản phẩm cha', 'text_domain'),
-		'parent_item_colon' => __('Danh mục sản phẩm cha:', 'text_domain'),
-		'edit_item'         => __('Chỉnh sửa danh mục sản phẩm', 'text_domain'),
-		'update_item'       => __('Cập nhật danh mục sản phẩm', 'text_domain'),
-		'add_new_item'      => __('Thêm mới danh mục sản phẩm', 'text_domain'),
-		'new_item_name'     => __('Tên danh mục sản phẩm mới', 'text_domain'),
-		'menu_name'         => __('Danh mục sản phẩm', 'text_domain'),
-	);
-
-	$args = array(
-		'hierarchical'      => true, // Cho phép phân cấp như categories
-		'labels'            => $labels,
-		'show_ui'           => true,
-		'show_admin_column' => true,
-		'query_var'         => true,
-		'rewrite'           => array('slug' => 'danh-muc-san-pham'),
-	);
-
-	register_taxonomy('danh-muc-san-pham', array('san-pham'), $args);
-}
-add_action('init', 'tao_taxonomy_danh_muc_san_pham', 0);
-
 function my_theme_archive_title($title)
 {
 	if (is_category()) {
@@ -292,3 +213,18 @@ function my_theme_archive_title($title)
 }
 
 add_filter('get_the_archive_title', 'my_theme_archive_title');
+
+function custom_pagination($wp_query)
+{
+	$big = 999999999; // cần một số lớn để thay thế
+	echo paginate_links(array(
+		'base'      => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
+		'format'    => '?paged=%#%',
+		'current'   => max(1, get_query_var('paged')),
+		'total'     => $wp_query->max_num_pages,
+		'prev_text' => __('«'), // Tùy chỉnh văn bản nút trước
+		'next_text' => __('»'),      // Tùy chỉnh văn bản nút tiếp theo
+		'before_page_number' => '<span class="page-number">', // Thêm lớp CSS trước số trang
+		'after_page_number'  => '</span>', // Thêm lớp CSS sau số trang
+	));
+}

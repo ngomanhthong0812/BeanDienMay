@@ -118,4 +118,21 @@
 				</div>
 				<div class="z-10 bg-[var(--main-color)]" style="flex-grow: 1;"></div>
 			</nav><!-- #site-navigation -->
+			<?php if (!is_front_page()) { ?>
+				<div class="navigation py-3 bg-[#f5f5f5]">
+					<div class="layout_container text-[14px] center !justify-start gap-1">
+						<a href="<?php echo get_home_url() ?>" class="!text-black">Trang chủ</a>
+						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" style="fill: rgba(0, 0, 0, 1);margin-top: 2px;">
+							<path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path>
+						</svg>
+						<?php
+						if (is_product_category()) {
+							echo '<span class="text-[var(--main-hover-color)] ">' . single_term_title('', false) . '</span>';
+						} else {
+							echo '<span class="text-[var(--main-hover-color)] ">' . get_the_title() . '</span>';
+						}
+						?>
+					</div>
+				</div>
+			<?php } ?>
 		</header><!-- #masthead -->

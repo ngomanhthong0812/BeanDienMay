@@ -10,16 +10,8 @@
 
 get_header();
 ?>
+post
 <main id="primary" class="site-main ">
-	<div class="navigation py-3 bg-[#f5f5f5]">
-		<div class="layout_container text-[14px] center !justify-start gap-1">
-			<a href="<?php echo get_home_url() ?>" class="!text-black">Trang chủ</a>
-			<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" style="fill: rgba(0, 0, 0, 1);margin-top: 2px;">
-				<path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path>
-			</svg>
-			<?php the_archive_title('<span class="text-[var(--main-hover-color)] ">', '</span>'); ?>
-		</div>
-	</div>
 	<div class="layout_container !py-[15px]">
 		<div class="center gap-[15px]">
 			<?php
@@ -61,7 +53,7 @@ get_header();
 				 * If you want to override this in a child theme, then include a file
 				 * called content-___.php (where ___ is the Post Type name) and that will be used instead.
 				 */
-				get_template_part('template-parts/content-san-pham', get_post_type());
+				get_template_part('template-parts/content', get_post_type());
 			endwhile;
 
 			the_posts_navigation();
