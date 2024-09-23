@@ -126,7 +126,7 @@
 							<path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path>
 						</svg>
 						<?php
-						if (is_product_category()) {
+						if (single_term_title('', false)) {
 							echo '<span class="text-[var(--main-hover-color)] ">' . single_term_title('', false) . '</span>';
 						} else {
 							echo '<span class="text-[var(--main-hover-color)] ">' . get_the_title() . '</span>';
@@ -134,5 +134,6 @@
 						?>
 					</div>
 				</div>
-			<?php } ?>
+			<?php }
+			?>
 		</header><!-- #masthead -->

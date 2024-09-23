@@ -8,6 +8,8 @@
  * @package bean.dev
  */
 
+use Google\Api\FieldInfo\Format;
+
 if (! defined('_S_VERSION')) {
 	// Replace the version number of the theme on each release.
 	define('_S_VERSION', '1.0.0');
@@ -15,11 +17,12 @@ if (! defined('_S_VERSION')) {
 
 function my_theme_enqueue_theme()
 {
-	wp_enqueue_style('output', get_template_directory_uri() . '/dist/output.css', array());
-	wp_enqueue_style('custom-css', get_template_directory_uri() . '/custom.css', array(), '1.2');
+	wp_enqueue_style('output', get_template_directory_uri() . '/dist/output.css', array(), '1.7');
+	wp_enqueue_style('custom-css', get_template_directory_uri() . '/custom.css', array(), '1.3');
 }
 
 add_action('wp_enqueue_scripts', 'my_theme_enqueue_theme');
+
 /**
  * Sets up theme defaults and registers support for various WordPress features.
  *
@@ -228,3 +231,328 @@ function custom_pagination($wp_query)
 		'after_page_number'  => '</span>', // Thêm lớp CSS sau số trang
 	));
 }
+
+
+function get_post_per_page($posts_per_page)
+{
+	$args = array(
+		'post_type' => 'post',
+		'posts_per_page' => $posts_per_page,
+	);
+	$query = new WP_Query($args);
+	if ($query->have_posts()) {
+		$posts = array();
+		while ($query->have_posts()) {
+			$query->the_post();
+			// /$query->the_post();: Thiết lập bài viết hiện tại trong vòng lặp. 
+			//Mỗi lần gọi hàm này, con trỏ sẽ di chuyển đến bài viết tiếp theo trong danh sách kết quả của WP_Query.
+			$posts[] = array(
+				'title'   => get_the_title(),
+				'excerpt' => get_the_excerpt(),
+				'thumbnail' => get_the_post_thumbnail_url(null, 'thumbnail'),
+				'permalink' => get_permalink(),
+				'time' => get_the_time('Y-m-d H:i:s'),
+			);
+		}
+		// Reset lại WP_Query sau khi sử dụng
+		wp_reset_postdata();
+
+
+		return $posts;
+	}
+
+	return array();
+}
+
+
+function get_product_info_by_category($category_slug, $limit)
+{
+	$products = get_posts(array(
+		'post_type' => 'product',
+		'numberposts' => -1,
+		'posts_per_page' => $limit,
+		'post_status' => 'publish',
+		'tax_query' => array(
+			array(
+				'taxonomy' => 'product_cat',
+				'field' => 'slug',
+				'terms' => $category_slug,
+				'operator' => 'IN',
+			)
+		),
+	));
+
+	$product_info = array();
+
+	foreach ($products as $product) {
+		$product_info[] = get_product_by_id($product->ID);
+	}
+
+	return $product_info;
+}
+function get_all_product_info($limit)
+{
+	$products = get_posts(array(
+		'post_type' => 'product',
+		'numberposts' => -1,
+		'posts_per_page' => $limit,
+		'post_status' => 'publish'
+	));
+
+	$product_info = array();
+	foreach ($products as $product) {
+		$product_info[] = get_product_by_id($product->ID);
+	}
+
+	return $product_info;
+}
+
+function get_product_by_id($product_id)
+{
+	// Lấy sản phẩm dựa trên ID
+	$product_obj = wc_get_product($product_id);
+	// Lấy danh mục của sản phẩm
+	$category_ids = $product_obj->get_category_ids();
+	$categories = array();
+	$brand_photo = '';
+	$brand_name = '';
+
+
+	foreach ($category_ids as $cat_id) {
+		$thumbnail_id = get_term_meta($cat_id, 'thumbnail_id', true);
+		$thumbnail_url = wp_get_attachment_url($thumbnail_id);
+
+		$term = get_term($cat_id, 'product_cat');
+		$categories[] = array(
+			'id' => $term->term_id,
+			'name' => $term->name,
+			'slug' => $term->slug,
+			'thumbnail' => $thumbnail_url ? $thumbnail_url : null
+		);
+
+		$pattern = "/thuonghieu/";
+		if (preg_match($pattern, $thumbnail_url)) {
+			$brand_photo = $thumbnail_url;
+			$brand_name = $term->name;
+		}
+	}
+
+	$product_image_id = $product_obj->get_image_id();
+	$product_image_url = wp_get_attachment_url($product_image_id);
+	$product_info = array(
+		'id' => $product_obj->get_id(),
+		'name' => $product_obj->get_name(),
+		'type' => $product_obj->get_type(),
+		'regular_price' => $product_obj->get_regular_price(),
+		'sale_price' => $product_obj->get_sale_price(),
+		'image' => $product_image_url,
+		'categories' => $categories,
+		'brand_photo' => $brand_photo,
+		'brand_name' => $brand_name,
+		'link' => $product_obj->get_permalink(),
+	);
+
+	return $product_info;
+}
+
+
+function GetProductByCategory($category_slug = "", $limit = null)
+{
+	$productList = get_all_product_info($limit);
+
+	if ($category_slug !== "") {
+		$productList = get_product_info_by_category($category_slug, $limit);
+	}
+	$banners = array();
+	switch ($category_slug) {
+		case 'may-lanh':
+			$banners = array(
+				get_field('banner_category_may_lanh_1', get_the_ID()),
+				get_field('banner_category_may_lanh_2', get_the_ID()),
+			);
+
+			break;
+		case 'tu-lanh':
+			$banners = array(
+				get_field('banner_category_tu_lanh_1', get_the_ID()),
+				get_field('banner_category_tu_lanh_2', get_the_ID()),
+			);
+
+			break;
+		case 'do-a-dung':
+			$banners = array(
+				get_field('banner_category_do_gia_dung_1', get_the_ID()),
+				get_field('banner_category_do_gia_dung_2', get_the_ID()),
+			);
+
+			break;
+	}
+
+	echo '<div>';
+	if ($category_slug != "") {
+		echo '<div class="title-container"><div class="title">';
+		$category = get_term_by('slug', $category_slug, 'product_cat');
+		$thumbnail_id = get_term_meta($category->term_id, 'thumbnail_id', true);
+		$thumbnail_url = wp_get_attachment_url($thumbnail_id);
+
+		echo '<img src="' . esc_url($thumbnail_url) . '" alt="' . esc_attr($category->name) . '">';
+		echo '<a href="' . esc_url(get_category_link($category)) . '"><span>' . esc_html($category->name) . '</span></a>';
+		echo '</div>';
+
+		echo '<div class="children_category">';
+		$args = array(
+			'taxonomy'   => 'product_cat',
+			'child_of'   => $category->term_id,
+			'hide_empty' => false,
+		);
+		$child_categories = get_terms($args);
+
+		if (!empty($child_categories) && !is_wp_error($child_categories)) {
+			foreach ($child_categories as $child_category) {
+				echo '<a href="' . esc_url(get_category_link($child_category)) . '">' . esc_html($child_category->name) . '</a>';
+			}
+		}
+		echo '</div></div>';
+	}
+	ProductList($productList, $banners);
+	echo '</div>';
+}
+
+function ProductList($productList, $banners)
+{
+	$category_slug_to_link = 'all';
+	$category_to_link = get_term_by('slug', $category_slug_to_link, 'product_cat');
+	$category_link = get_term_link($category_to_link);
+
+	if (!empty($banners[0])) {
+		echo '<a  class="banner-item" href="' . $category_link . '"><img src="' . $banners[0]['url'] . '"/></a>';
+	}
+	echo '<div class="product-list">';
+	foreach ($productList as $product) {
+		$regular_price = (float) $product['regular_price'];
+		$sale_price = (float) $product['sale_price'];
+		$format_regular_price = $product['regular_price'] ? number_format($product['regular_price'], 0, '', '.') . 'đ' : 'Liên hệ';
+		$format_sale_price = $product['sale_price'] ? number_format($product['sale_price'], 0, '', '.') . 'đ' : '';
+
+		$discount_percentage = 0;
+		if ($regular_price > 0) {
+			$discount_percentage = (($regular_price - $sale_price) / $regular_price) * 100;
+		}
+		echo '<div class="product-item">';
+		echo '<img src="' . esc_url($product['brand_photo']) . '" alt="' . esc_html($product['name']) . '" class="brand_photo"/>';
+		echo '<div class="product-item_image">';
+		echo '<a href=' . $product['link'] . '><img src="' . esc_url($product['image']) . '" alt="' . esc_html($product['name']) . '" />';
+		echo '<div class="product-item_icon-container">
+		     <a href="' . esc_url(wc_get_cart_url()) . '?add-to-cart=' . esc_attr($product['id']) . '" class="add_to_cart_button product-item_icon">
+			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+			 <path d="M21 4H2v2h2.3l3.521 9.683A2.004 2.004 0 0 0 9.7 17H18v-2H9.7l-.728-2H18c.4 0 .762-.238.919-.606l3-7A.998.998 0 0 0 21 4z">
+			 </path><circle cx="10.5" cy="19.5" r="1.5"></circle><circle cx="16.5" cy="19.5" r="1.5"></circle>
+			 </svg>
+			 </a>
+			   <a href="" class="add_to_cart_button product-item_icon">
+			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+			 <path d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5zm0 11c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4z">
+			 </path><path d="M12 10c-1.084 0-2 .916-2 2s.916 2 2 2 2-.916 2-2-.916-2-2-2z"></path></svg>
+			 </a>
+			    <a href="" class="add_to_cart_button product-item_icon">
+			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+			 <path d="M20.205 4.791a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412L12 21.414l8.207-8.207c2.354-2.353 2.355-6.049-.002-8.416z"></path>
+			 </svg>
+			 </a>
+		     </div>';
+		echo '</div>';
+		echo '</a>';
+		echo '<div class="product-item_content">';
+		echo '<h2 class="product-item_name"><a href=' . $product['link'] . '>' . esc_html($product['name']) . '</a></h2>';
+		echo '<p class="product-item_price">' . $format_sale_price . '</p>';
+		echo '<div class="flex gap-2 item-center ">';
+		echo '<p class="product-item_regular_price center"> ' . $format_regular_price . '</p>';
+		echo '<p class="text-[#c40025] text-[15px]">(-' . esc_html(number_format($discount_percentage, 0)) . '%)</p>';
+		echo '</div>';
+		echo '</div>';
+		foreach ($product['categories'] as $category) {
+			echo '<span id="category_item">' . esc_attr($category['slug']) . '</span>';
+		}
+		echo '</div>';
+	}
+	echo '</div>';
+	if (!empty($banners[1])) {
+		echo '<a  class="banner-item" href="' . $category_link . '"><img src="' . $banners[1]['url'] . '"/></a>';
+	}
+}
+
+
+function ComponentSort()
+{
+	echo '<div class="center text-[14px] gap-2 ">
+        <div class="center font-[550] text-[#696969]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+                <path d="m6 20 4-4H7V4H5v12H2zm5-12h9v2h-9zm0 4h7v2h-7zm0-8h11v2H11zm0 12h5v2h-5z"></path>
+            </svg>
+            <span>Sắp xếp:</span>
+        </div>
+        <div class="relative sort-container">
+            <span class="center cursor-pointer">
+                <span id="selected">Mặc định</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" style="fill: rgba(0, 0, 0, 1);">
+                    <path d="M16.293 9.293 12 13.586 7.707 9.293l-1.414 1.414L12 16.414l5.707-5.707z"></path>
+                </svg>
+            </span>
+            <div class="absolute top-6 right-0 flex flex-col bg-[#f6f6f6] border selected-container" style="z-index: 30;">
+                <div class="sort-item">Mặc định</div>
+                <div class="sort-item">A → Z</div>
+                <div class="sort-item">Z → A</div>
+                <div class="sort-item">Giá tăng dần</div>
+                <div class="sort-item">Giá giảm dần</div>
+            </div>
+        </div>
+    </div>';
+}
+
+/** 
+ * start custom hook woocommerce 
+ * **/
+add_action('my_custom_action_related_products', 'custom_related_products', 10);
+
+add_action('my_custom_action_additional_information', 'my_custom_product_additional_information', 10);
+function custom_related_products()
+{
+	global $product;
+	$replate_products = wc_get_related_products($product->get_id(), 5);
+	$product_list = array();
+	foreach ($replate_products as $product_id) {
+		$product_list[] = get_product_by_id($product_id);
+	}
+	echo '<div class="title">Sản phẩm liên quan</div>';
+	ProductList($product_list, null);
+}
+
+function my_custom_product_additional_information()
+{
+	global $product;
+	$custom_fields = get_fields($product->get_id());
+	$index = 0;
+	echo '<div class="detailed-information-container sidebar-menu">';
+	echo '<div class="title_information">Thông tin chi tiết</div>';
+	echo '<table>';
+	foreach ($custom_fields as $key => $value) {
+		if ($value) {
+			$index++;
+			$field_details = acf_get_field($key);
+			$label = $field_details['label'];
+
+			echo '<tr class="detailed-information-child_item" style="' . ($index % 2 != 0 ? 'background-color: #f1f1f1;' : '') . '">';
+			echo '<th>' . $label . '</th>';
+			echo '<th>' . $value . '</th>';
+			echo '</tr>';
+		}
+	}
+	if ($index <= 0) {
+		echo '<div>Chưa có chi tiết sản phẩm</div>';
+	}
+	echo '</table>';
+	echo '</div>';
+}
+/** 
+ * end custom hook woocommerce 
+ * **/

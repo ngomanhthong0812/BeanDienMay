@@ -6,3 +6,19 @@
     --main-color: #0074bf;
     --main-hover-color: #fa9e0f;
 }
+
+.home-title_child {
+    @apply flex justify-between text-[var(--main-color)];
+}
+
+.home-title_child>div {
+    @apply uppercase font-[600] text-[18px] pb-3;
+}
+
+.home-title_child>a {
+    @apply flex !text-[var(--main-color)] hover:!text-[var(--main-hover-color)];
+}
+
+.title {
+    @apply pt-[15px] pb-[10px] uppercase font-[600];
+}
