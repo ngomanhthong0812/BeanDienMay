@@ -22,6 +22,103 @@
 	<?php wp_head(); ?>
 </head>
 
+<script>
+	// Kiểm tra xem categoryData đã có trong localStorage chưa
+	let categoryData = localStorage.getItem('categoryData');
+
+	// Khởi tạo một đối tượng categoryData
+	if (!categoryData) {
+		categoryData = {
+			<?php
+			$categories = get_terms(array(
+				'taxonomy' => 'product_cat',
+				'hide_empty' => false,
+			));
+			?>
+
+			<?php
+			// Kiểm tra nếu có danh mục
+			if (!empty($categories) && !is_wp_error($categories)) {
+				foreach ($categories as $category) {
+					$thumbnail_id = get_term_meta($category->term_id, 'thumbnail_id', true);
+					$thumbnail_url = wp_get_attachment_url($thumbnail_id);
+					$name = addslashes($category->name); // Thêm dấu gạch chéo ngược tránh lỗi js
+					echo "'$name': { 'thumbnail_url': '$thumbnail_url' },";
+				}
+			}
+			?>
+
+		};
+		localStorage.setItem('categoryData', JSON.stringify(categoryData));
+	} else {
+		categoryData = JSON.parse(categoryData);
+	}
+
+	// Ví dụ sử dụng categoryData trong JavaScript
+	document.addEventListener('DOMContentLoaded', function() {
+		const menuItems = document.querySelectorAll('#mega-menu-menu-1 > .mega-menu-item');
+		const subMenus = document.querySelectorAll('#mega-menu-menu-1 > .mega-menu-item >.mega-sub-menu');
+
+		menuItems.forEach(menu_item => {
+			const menuItemChild = menu_item.querySelector('.mega-menu-link');
+			const name = menuItemChild.textContent.trim(); // Lấy tên danh mục
+			const subMenu = menu_item.querySelector('.mega-sub-menu');
+
+			// Kiểm tra nếu tên danh mục có trong categoryData
+			if (categoryData[name]) {
+				const thumbnail_url = categoryData[name].thumbnail_url;
+
+				// Cập nhật HTML với ảnh đại diện và tên danh mục
+				menuItemChild.innerHTML = `
+                    <div class="center gap-1 active_menu">
+                        <img src="${thumbnail_url}" alt="${name}">
+                        <div>
+                            <span>${name}</span>
+                           ${subMenu ? `
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" style="fill: rgba(255, 255, 255, 1);">
+                                      <path d="M16.293 9.293 12 13.586 7.707 9.293l-1.414 1.414L12 16.414l5.707-5.707z"></path>
+                                      </svg>
+                                      ` : ''}
+                        </div>
+                    </div>`;
+			} else {
+				menuItemChild.innerHTML = `
+                    <div class="center gap-1 active_menu">
+                        <div>
+                            <span>${name}</span>
+                           ${subMenu ? `
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" style="fill: rgba(255, 255, 255, 1);">
+                                      <path d="M16.293 9.293 12 13.586 7.707 9.293l-1.414 1.414L12 16.414l5.707-5.707z"></path>
+                                      </svg>
+                                      ` : ''}
+                        </div>
+                    </div>`;
+			}
+		});
+
+		subMenus.forEach(subMenu => {
+			const subMenuItemChild = subMenu.querySelectorAll('.mega-menu-item');
+
+			subMenuItemChild.forEach(subMenu => {
+				const menuItem = subMenu.querySelector('.mega-menu-link');
+				const subMenuChild = subMenu.querySelector('.mega-sub-menu');
+
+				if (subMenuChild) {
+					menuItem.innerHTML =
+						menuItem.textContent +
+						`
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" style="fill: #666;">
+						<path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path>
+						</svg>
+                        `
+				}
+
+			})
+
+		})
+	});
+</script>
+
 <body <?php body_class(); ?>>
 	<?php wp_body_open(); ?>
 	<div id="page" class="site">
@@ -48,7 +145,8 @@
 
 					<div class="select w-[28%] flex justify-between">
 						<a href="#" class="select-item">
-							<img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/hea_phone.webp" alt="">
+							<img src="<?php $upload_dir = wp_get_upload_dir();
+										echo $upload_dir['baseurl']; ?>/2024/09/hea_phone.webp" alt="">
 							<div class="flex flex-col leading-4">Hotline <strong>1900 6750</strong></div>
 						</a>
 						<a href="#" class="select-item flex">
@@ -72,14 +170,16 @@
 						</a>
 						<a href="#" class="select-item">
 							<div class="icon-header">
-								<img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/account.webp" alt="">
+								<img src="<?php $upload_dir = wp_get_upload_dir();
+											echo $upload_dir['baseurl']; ?>/2024/09/account.webp" alt="">
 							</div>
 						</a>
-						<a href="#" class="select-item relative">
+						<a href="<?php echo wc_get_cart_url() ?>" class="select-item relative">
 							<div class="icon-header">
-								<img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/icon-cart.webp" alt="">
+								<img src="<?php $upload_dir = wp_get_upload_dir();
+											echo $upload_dir['baseurl']; ?>/2024/09/icon-cart.webp" alt="">
 							</div>
-							<p class="select-item-count absolute top-[-7px] right-0" style="width: 16px; height: 16px;">0</p>
+							<p class="select-item-count absolute top-[-7px] right-0" style="width: 16px; height: 16px;"><?php echo WC()->cart->get_cart_contents_count() ?></p>
 						</a>
 
 					</div>
@@ -108,7 +208,8 @@
 						</div>
 						<a href="#" class="py-1 center btn-sale pr-3">
 							<div class="center bg-white text-[var(--main-hover-color)] py-1 px-3 rounded-md font-[600] uppercase gap-1">
-								<img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/gift.webp" alt="" width="18" height="18">
+								<img src="<?php $upload_dir = wp_get_upload_dir();
+											echo $upload_dir['baseurl']; ?>/2024/09/gift.webp" alt="" width="18" height="18">
 								<span style="font-size: 11px;">
 									Khuyến mãi
 								</span>
@@ -136,4 +237,6 @@
 				</div>
 			<?php }
 			?>
+
+
 		</header><!-- #masthead -->

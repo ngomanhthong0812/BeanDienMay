@@ -17,8 +17,8 @@ if (! defined('_S_VERSION')) {
 
 function my_theme_enqueue_theme()
 {
-	wp_enqueue_style('output', get_template_directory_uri() . '/dist/output.css', array(), '1.7');
-	wp_enqueue_style('custom-css', get_template_directory_uri() . '/custom.css', array(), '1.3');
+	wp_enqueue_style('output', get_template_directory_uri() . './dist/output.css', array(), '1.4');
+	wp_enqueue_style('custom-css', get_template_directory_uri() . '/custom.css', array(), '1.2');
 }
 
 add_action('wp_enqueue_scripts', 'my_theme_enqueue_theme');
@@ -337,6 +337,16 @@ function get_product_by_id($product_id)
 		}
 	}
 
+	$stock_status = '';
+
+	if ($product_obj->get_stock_status() === 'instock') {
+		$stock_status = 'Còn hàng';
+	} elseif ($product_obj->get_stock_status() === 'outofstock') {
+		$stock_status = 'Hết hàng';
+	} elseif ($product_obj->get_stock_status() === 'onbackorder') {
+		$stock_status = 'Đặt hàng trước';
+	}
+
 	$product_image_id = $product_obj->get_image_id();
 	$product_image_url = wp_get_attachment_url($product_image_id);
 	$product_info = array(
@@ -350,6 +360,7 @@ function get_product_by_id($product_id)
 		'brand_photo' => $brand_photo,
 		'brand_name' => $brand_name,
 		'link' => $product_obj->get_permalink(),
+		'status' => $stock_status,
 	);
 
 	return $product_info;
@@ -389,7 +400,7 @@ function GetProductByCategory($category_slug = "", $limit = null)
 	}
 
 	echo '<div>';
-	if ($category_slug != "") {
+	if ($limit != null) {
 		echo '<div class="title-container"><div class="title">';
 		$category = get_term_by('slug', $category_slug, 'product_cat');
 		$thumbnail_id = get_term_meta($category->term_id, 'thumbnail_id', true);
@@ -402,7 +413,7 @@ function GetProductByCategory($category_slug = "", $limit = null)
 		echo '<div class="children_category">';
 		$args = array(
 			'taxonomy'   => 'product_cat',
-			'child_of'   => $category->term_id,
+			'parent'   => $category->term_id,
 			'hide_empty' => false,
 		);
 		$child_categories = get_terms($args);
@@ -417,6 +428,15 @@ function GetProductByCategory($category_slug = "", $limit = null)
 	ProductList($productList, $banners);
 	echo '</div>';
 }
+function enqueue_swiper_assets()
+{
+	// Thêm CSS của Swiper
+	wp_enqueue_style('swiper-css', 'https://unpkg.com/swiper/swiper-bundle.min.css');
+
+	// Thêm JS của Swiper
+	wp_enqueue_script('swiper-js', 'https://unpkg.com/swiper/swiper-bundle.min.js', array(), null, true);
+}
+add_action('wp_enqueue_scripts', 'enqueue_swiper_assets');
 
 function ProductList($productList, $banners)
 {
@@ -431,8 +451,8 @@ function ProductList($productList, $banners)
 	foreach ($productList as $product) {
 		$regular_price = (float) $product['regular_price'];
 		$sale_price = (float) $product['sale_price'];
-		$format_regular_price = $product['regular_price'] ? number_format($product['regular_price'], 0, '', '.') . 'đ' : 'Liên hệ';
-		$format_sale_price = $product['sale_price'] ? number_format($product['sale_price'], 0, '', '.') . 'đ' : '';
+		$format_regular_price = $product['regular_price'] ? number_format($product['regular_price'], 0, '', '.') . 'đ' : '';
+		$format_sale_price = $product['sale_price'] ? number_format($product['sale_price'], 0, '', '.') . 'đ' : 'Liên hệ';
 
 		$discount_percentage = 0;
 		if ($regular_price > 0) {
@@ -518,13 +538,13 @@ add_action('my_custom_action_additional_information', 'my_custom_product_additio
 function custom_related_products()
 {
 	global $product;
-	$replate_products = wc_get_related_products($product->get_id(), 5);
+	$replate_products = wc_get_related_products($product->get_id(), 8);
 	$product_list = array();
 	foreach ($replate_products as $product_id) {
 		$product_list[] = get_product_by_id($product_id);
 	}
 	echo '<div class="title">Sản phẩm liên quan</div>';
-	ProductList($product_list, null);
+	ProductSlider($product_list);
 }
 
 function my_custom_product_additional_information()
@@ -553,6 +573,160 @@ function my_custom_product_additional_information()
 	echo '</table>';
 	echo '</div>';
 }
+
+
 /** 
  * end custom hook woocommerce 
  * **/
+
+
+function ProductSlider($productList)
+{
+	echo '<div class="swiper-container">'; // Thêm container của Swiper
+	echo '<div class="swiper-wrapper">'; // Thêm lớp này để chứa các sản phẩm
+
+	foreach ($productList as $product) {
+		echo '<div class="swiper-slide">'; // Thay đổi lớp sản phẩm thành swiper-slide
+		$regular_price = (float) $product['regular_price'];
+		$sale_price = (float) $product['sale_price'];
+		$format_regular_price = $product['regular_price'] ? number_format($product['regular_price'], 0, '', '.') . 'đ' : '';
+		$format_sale_price = $product['sale_price'] ? number_format($product['sale_price'], 0, '', '.') . 'đ' : 'Liên hệ';
+		$discount_percentage = 0;
+		if ($regular_price > 0) {
+			$discount_percentage = (($regular_price - $sale_price) / $regular_price) * 100;
+		}
+
+		echo '<div class="product-item">';
+		echo '<img src="' . esc_url($product['brand_photo']) . '" alt="' . esc_html($product['name']) . '" class="brand_photo"/>';
+		echo '<div class="product-item_image">';
+		echo '<a href="' . $product['link'] . '"><img src="' . esc_url($product['image']) . '" alt="' . esc_html($product['name']) . '" />';
+		echo '<div class="product-item_icon-container">
+		     <a href="' . esc_url(wc_get_cart_url()) . '?add-to-cart=' . esc_attr($product['id']) . '" class="add_to_cart_button product-item_icon">
+			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+			 <path d="M21 4H2v2h2.3l3.521 9.683A2.004 2.004 0 0 0 9.7 17H18v-2H9.7l-.728-2H18c.4 0 .762-.238.919-.606l3-7A.998.998 0 0 0 21 4z">
+			 </path><circle cx="10.5" cy="19.5" r="1.5"></circle><circle cx="16.5" cy="19.5" r="1.5"></circle>
+			 </svg>
+			 </a>
+			   <a href="" class="add_to_cart_button product-item_icon">
+			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+			 <path d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5zm0 11c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4z">
+			 </path><path d="M12 10c-1.084 0-2 .916-2 2s.916 2 2 2 2-.916 2-2-.916-2-2-2z"></path></svg>
+			 </a>
+			    <a href="" class="add_to_cart_button product-item_icon">
+			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+			 <path d="M20.205 4.791a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412L12 21.414l8.207-8.207c2.354-2.353 2.355-6.049-.002-8.416z"></path>
+			 </svg>
+			 </a>
+		     </div>';
+		echo '</div>';
+		echo '</a>';
+		echo '<div class="product-item_content">';
+		echo '<h2 class="product-item_name"><a href="' . $product['link'] . '">' . esc_html($product['name']) . '</a></h2>';
+		echo '<p class="product-item_price">' . $format_sale_price . '</p>';
+		echo '<div class="flex gap-2 item-center ">';
+		echo '<p class="product-item_regular_price center"> ' . $format_regular_price . '</p>';
+		echo '<p class="text-[#c40025] text-[15px]">(-' . esc_html(number_format($discount_percentage, 0)) . '%)</p>';
+		echo '</div>';
+		echo '</div>';
+		echo '</div>';
+		echo '</div>'; // Kết thúc swiper-slide
+	}
+
+	echo '</div>'; // Kết thúc swiper-wrapper
+	echo '<div class="swiper-button-next"></div>'; // Nút Next
+	echo '<div class="swiper-button-prev"></div>'; // Nút Prev
+	echo '</div>'; // Kết thúc swiper-container
+
+	// Khởi tạo Swiper
+	echo '<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var swiper = new Swiper(".swiper-container", {
+            slidesPerView: 4,
+            spaceBetween: 20,
+            loop: false,
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            autoplay: {
+                delay: 5000,
+            },
+        });
+    });
+    </script>';
+}
+
+
+function get_woocommerce_coupons()
+{
+	$args = array(
+		'post_type' => 'shop_coupon',
+		'posts_per_page' => 3,
+	);
+
+	$coupons = get_posts($args);
+
+	echo '<div class="p-3 flex flex-col gap-3 rounded-[4px] border-dashed border-[1px] border-[var(--main-color)]">';
+	foreach ($coupons as $coupon) {
+		$coupon_code = get_the_title($coupon->ID); // Lấy mã voucher
+		$discount_type = get_post_meta($coupon->ID, 'discount_type', true); // Loại giảm giá
+		$amount = get_post_meta($coupon->ID, 'coupon_amount', true); // Số tiền giảm giá
+		$excerpt = get_the_excerpt($coupon->ID);
+		echo '<div class="voucher-item text-[14px] p-2 rounded-md">';
+		echo '<div class="font-[700] text-[var(--main-color)]">' . $excerpt . '</div>';
+		echo sprintf('<div>Nhập mã %s giảm ngay %s </div>', $coupon_code, $excerpt);
+		echo '<div class="copy-coupon-btn flex justify-between bg-[#f5f5f5]  p-1 mt-2 rounded-[2px]">
+		<span id="coupon-code" class="font-[600]">' . $coupon_code . '</span>
+		<button class="bg-[var(--main-color)] text-white center p-3 text-[12px] hover:bg-[var(--main-hover-color)] duration-200" style="line-height: 0; border:none;">Copy</button>
+		</div>';
+		echo '</div>';
+	}
+	echo '</div>';
+}
+add_shortcode('show_vouchers', 'get_woocommerce_coupons');
+
+function productPolicies()
+{
+	$upload_dir = wp_get_upload_dir();
+
+	$policies = array(
+		array(
+			'imgUrl' => $upload_dir['baseurl'] . '/2024/09/policy_image_1.webp',
+			'content' => 'Miễn phí vận chuyển tại Huế'
+		),
+		array(
+			'imgUrl' => $upload_dir['baseurl'] . '/2024/09/policy_image_2.webp',
+			'content' => 'Bảo hành chính hãng toàn quốc'
+		),
+		array(
+			'imgUrl' => $upload_dir['baseurl'] . '/2024/09/policy_image_3.webp',
+			'content' => 'Cam kết chính hãng 100%'
+		),
+		array(
+			'imgUrl' => $upload_dir['baseurl'] . '/2024/09/policy_image_4.webp',
+			'content' => 'Hỗ trợ sửa chữa, bảo hành'
+		)
+	);
+	echo '<div class="product-policies">';
+	foreach ($policies as $piloce) {
+		echo '<div class="policy-item">';
+		echo '<img src="' . $piloce['imgUrl'] . '" alt="Policy">';
+		echo '<div class="policy-content">' . $piloce['content'] . '</div>';
+		echo '</div>';
+	}
+	echo '</div>';
+}
+
+
+add_action('wp_ajax_get_cart_count', 'get_cart_count');
+add_action('wp_ajax_nopriv_get_cart_count', 'get_cart_count');
+
+function get_cart_count()
+{
+	echo WC()->cart->get_cart_contents_count();
+	wp_die(); // Ngăn chặn việc xuất thêm thông tin
+}

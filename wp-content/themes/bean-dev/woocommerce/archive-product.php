@@ -29,7 +29,7 @@ get_header('shop');
 	?>
 	<!-- End JavaScript -->
 
-	<div class="layout_container !py-[15px]">
+	<div class="layout_container" style="padding: 15px 0;">
 		<div class="center gap-[15px]">
 			<?php
 			$page_id = get_page_by_path('feild-product-page');
@@ -51,7 +51,7 @@ get_header('shop');
 		</div>
 
 		<div>
-			<div class="pt-[15px] pb-[10px] uppercase font-[600]">Thương hiệu</div>
+			<div class="uppercase font-[600]" style="padding: 10px 0;">Thương hiệu</div>
 			<?php echo do_shortcode('[sp_wpcarousel id="204"]'); ?>
 		</div>
 
@@ -69,7 +69,7 @@ get_header('shop');
 				if ($parent_category) {
 					$child_categories = get_terms(array(
 						'taxonomy' => 'product_cat',
-						'child_of' => $parent_category->term_id,
+						'parent' => $parent_category->term_id,
 						'hide_empty' => false,
 					));
 				}
