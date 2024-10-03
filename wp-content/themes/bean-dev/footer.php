@@ -13,6 +13,7 @@
 ?>
 
 <footer id="colophon" class="site-footer">
+	<?php $upload_dir = wp_get_upload_dir(); ?>
 	<div class="site-info layout_container">
 		<div class="footer-container">
 			<div class="footer-section w-[33%]">
@@ -26,19 +27,21 @@
 			<div class="footer-section w-[20%]">
 				<h3>CHÍNH SÁCH</h3>
 				<?php
-				$parent_category = get_category_by_slug('chinh-sach');
-				$parent_category_id = $parent_category->term_id;
-				$child_categories = get_categories(array(
-					'child_of' => $parent_category_id,
-					'hide_empty' => false, // Hiển thị cả những danh mục rỗng
-				));
+				$args = array(
+					'post_type' => 'policy', // Tên CPT của bạn
+					'posts_per_page' => 5, // lấy 5 bài viết
+				);
 
-				if (!empty($child_categories)) {
-					foreach ($child_categories as $child_category) {
-						printf('<a href="%s"><li>%s</li></a>', get_category_link($child_category->term_id), $child_category->name);
+				$policy_posts = get_posts($args);
+
+				if (!empty($policy_posts)) {
+					foreach ($policy_posts as $post) {
+						setup_postdata($post); // Thiết lập dữ liệu cho bài viết
+						printf('<a href="%s"><li>%s</li></a>', get_permalink($post->ID), get_the_title($post->ID));
 					}
+					wp_reset_postdata(); // Đặt lại dữ liệu bài viết
 				} else {
-					echo 'Không có danh mục con nào.';
+					echo 'Không có bài viết nào.';
 				}
 				?>
 			</div>
@@ -57,10 +60,10 @@
 			<div class="footer-section w-[27%]">
 				<h3>PHƯƠNG THỨC THANH TOÁN</h3>
 				<div class="payment-methods">
-					<div><img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/payment-1.webp" alt="Mastercard"></div>
-					<div><img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/payment-2.webp" alt="Visa"></div>
-					<div><img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/payment-3.webp" alt="JCB"></div>
-					<div><img src="http://localhost/beanDienMay/wp-content/uploads/2024/09/payment-4.webp" alt="ZaloPay"></div>
+					<div><img src="<?php echo $upload_dir['baseurl']; ?>/2024/09/payment-1.webp" alt="Mastercard"></div>
+					<div><img src="<?php echo $upload_dir['baseurl']; ?>/2024/09/payment-2.webp" alt="Visa"></div>
+					<div><img src="<?php echo $upload_dir['baseurl']; ?>/2024/09/payment-3.webp" alt="JCB"></div>
+					<div><img src="<?php echo $upload_dir['baseurl']; ?>/2024/09/payment-4.webp" alt="ZaloPay"></div>
 				</div>
 			</div>
 		</div>

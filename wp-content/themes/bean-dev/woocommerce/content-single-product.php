@@ -34,7 +34,7 @@ if (post_password_required()) {
 ?>
 <?php wp_enqueue_script('coppyVoucher-js', get_template_directory_uri() . '/js/coppyVoucher.js', array(), 'v2', true); ?>
 <div id="product-<?php the_ID(); ?>" <?php wc_product_class('', $product); ?>>
-	<div class="flex gap-3">
+	<div class="flex gap-3 product-detail">
 		<?php
 		/**
 		 * Hook: woocommerce_before_single_product_summary.
@@ -64,6 +64,14 @@ if (post_password_required()) {
 		</div> -->
 		<?php
 		$getProduct = get_product_by_id($product->get_id())
+		?>
+
+		<?php
+		$policy_posts = get_posts(array(
+			'post_type' => 'policy', // Tên CPT của bạn
+			'posts_per_page' => 1, // Lấy 1 bài viết
+			's' => 'Chính sách trả góp', // Tìm kiếm theo tiêu đề
+		));
 		?>
 		<div class="wc-detail-product">
 			<h1 class="text-[22px]"><?php echo $getProduct['name'] ?></h1>
@@ -150,7 +158,10 @@ if (post_password_required()) {
 							</div>
 						</div>
 
-						<a href="#"
+						<a href="<?php
+									if (!empty($policy_posts)) {
+										echo get_permalink($policy_posts[0]->ID); // Lấy link chính sách
+									} ?>"
 							class="flex flex-1 flex-col items-center border border-[var(--main-color)] hover:!text-[var(--main-hover-color)] hover:border-[var(--main-hover-color)] duration-200 !text-[var(--main-color)] leading-5 text-[13px] p-2 rounded-md">
 							<span class="uppercase font-[700]">Mua trả góp</span>
 							Duyệt hồ sơ trong 5 phút
@@ -174,7 +185,7 @@ if (post_password_required()) {
 	</div>
 
 	<div class="flex gap-[15px] entry-content">
-		<div class="product-tabs">
+		<div class="product-tabs <?php $isShowInfo ? '!w-[100%]' : '!w-[65%]' ?>" style="width: 100%;">
 			<?php
 			/**
 			 * Hook: woocommerce_after_single_product_summary.
@@ -188,7 +199,17 @@ if (post_password_required()) {
 			do_action('woocommerce_after_single_product_summary', 'woocommerce_output_product_data_tabs');
 			?>
 		</div>
-		<?php do_action('my_custom_action_additional_information'); ?>
+
+		<?php
+		global $product;
+		$custom_fields = get_fields($product->get_id());
+		$isShowInfo = false;
+		if (is_array($custom_fields) && !empty($custom_fields)) {
+			// Kiểm tra xem có bất kỳ trường nào có giá trị khác null không
+			$isShowInfo = !empty(array_filter($custom_fields));
+		}
+		?>
+		<?php $isShowInfo ? do_action('my_custom_action_additional_information') : "" ?>
 
 
 	</div>
@@ -220,58 +241,65 @@ if (post_password_required()) {
 		let quantity = 1;
 
 
-		btn1.addEventListener('click', function() {
-			if (quantity > 1) {
-				quantity--;
+		if (btn1 && btn2) {
+			btn1.addEventListener('click', function() {
+				if (quantity > 1) {
+					quantity--;
+					value.value = quantity;
+				}
+			})
+			btn2.addEventListener('click', function() {
+				quantity++;
 				value.value = quantity;
-			}
-		})
-		btn2.addEventListener('click', function() {
-			quantity++;
-			value.value = quantity;
-		})
+			})
+		}
 
-		// Thêm sản phẩm vào giỏ hàng và cập nhật số lượng sp trong giỏ hàng
-		btnAddToCart.addEventListener('click', function(e) {
-			e.preventDefault();
-			btnAddToCart.setAttribute('data-quantity', quantity);
+		if (btnAddToCart) {
+			// Thêm sản phẩm vào giỏ hàng và cập nhật số lượng sp trong giỏ hàng
+			btnAddToCart.addEventListener('click', function(e) {
+				e.preventDefault();
+				btnAddToCart.setAttribute('data-quantity', quantity);
 
-			loading.style.display = 'block';
-			fetchCartCount().then(quantityCart => {
-				loading.style.display = 'none';
-				eQuantity.innerHTML = Number(quantityCart) + Number(quantity);
-				quickViewCart.classList.add('active');
-			});
-
-		})
-
-		// Kiểm tra khi đã thêm sản phẩm thành công vào giỏ hàng và chuyển hướng chức năng 'Mua Ngay'
-		btnBuyNow.addEventListener('click', function() {
-			quantity = value.value;
-			event.preventDefault();
-			console.log('Đang gửi AJAX để thêm sản phẩm vào giỏ hàng...');
-
-			// Cập nhật số lượng sản phẩm cần thêm
-			btnBuyNow.setAttribute('data-quantity', quantity);
-
-			// Bắt đầu quá trình gửi AJAX của WooCommerce
-			var ajaxUrl = btnBuyNow.getAttribute('href');
-
-			ajaxUrl += '&quantity=' + quantity;
-
-			// Gửi yêu cầu AJAX
-			fetch(ajaxUrl)
-				.then(function(response) {
-					return response.text();
-				})
-				.then(function(data) {
-					console.log('Sản phẩm đã được gửi qua AJAX');
-					window.location.href = checkoutUrl; // Chuyển hướng tới trang giỏ hàng
-				})
-				.catch(function(error) {
-					console.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng:', error);
+				loading.style.display = 'block';
+				fetchCartCount().then(quantityCart => {
+					loading.style.display = 'none';
+					eQuantity.innerHTML = Number(quantityCart);
+					quickViewCart.classList.add('active');
 				});
-		});
+
+			})
+		}
+
+
+		if (btnBuyNow) {
+			// Kiểm tra khi đã thêm sản phẩm thành công vào giỏ hàng và chuyển hướng chức năng 'Mua Ngay'
+			btnBuyNow.addEventListener('click', function() {
+				quantity = value.value;
+				event.preventDefault();
+				console.log('Đang gửi AJAX để thêm sản phẩm vào giỏ hàng...');
+
+				// Cập nhật số lượng sản phẩm cần thêm
+				btnBuyNow.setAttribute('data-quantity', quantity);
+
+				// Bắt đầu quá trình gửi AJAX của WooCommerce
+				var ajaxUrl = btnBuyNow.getAttribute('href');
+
+				ajaxUrl += '&quantity=' + quantity;
+
+				// Gửi yêu cầu AJAX
+				fetch(ajaxUrl)
+					.then(function(response) {
+						return response.text();
+					})
+					.then(function(data) {
+						console.log('Sản phẩm đã được gửi qua AJAX');
+						window.location.href = checkoutUrl; // Chuyển hướng tới trang giỏ hàng
+					})
+					.catch(function(error) {
+						console.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng:', error);
+					});
+			});
+		}
 
 		// Hàm lấy số lượng sản phẩm trong giỏ hàng hiện tại
 		function fetchCartCount() {

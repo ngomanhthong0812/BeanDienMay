@@ -40,7 +40,7 @@ defined('ABSPATH') || exit;
     <div class="entry-content !m-0">
         <?php
         $term = get_queried_object();
-        $slug = $term->slug;
+        $slug = isset($term->slug) ? $term->slug : 'all';
 
         if ($slug === 'all') {
             GetProductByCategory();

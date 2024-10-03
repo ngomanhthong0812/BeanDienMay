@@ -17,6 +17,7 @@ get_header();
 ?>
 
 <main id="primary" class="site-main">
+    <?php $upload_dir = wp_get_upload_dir(); ?>
     <div class="layout_container home-page-container">
         <div class="banner py-[15px] gap-[15px] flex">
             <div class="w-[76%]">
@@ -46,9 +47,29 @@ get_header();
             <?php echo do_shortcode('[sp_wpcarousel id="204"]'); ?>
         </div>
 
+        <?php
+        $slug_khuyen_mai = 'san-pham-khuyen-mai';
+        $category = get_term_by('slug', $slug_khuyen_mai, 'product_cat');
+        ?>
+        <div class="flash_sale">
+            <div class="bg-[var(--main-color)] p-3 rounded-md">
+                <div class="flex items-center pb-3 gap-4 ">
+                    <a href="<?php echo get_category_link($category) ?>" class="center z-10 bg-[var(--main-color)] !justify-start !text-[#ffe645] text-[22px] font-[700] gap-2">
+                        FLASH SALE
+                        <img class="icon-flash-sale" src="<?php echo $upload_dir['baseurl']; ?>/2024/10/flash.webp" alt="" style="width: 25px; height: 25px;">
+                    </a>
+                    <div class="text-white text-[13px] moving-text flex-1">Giảm ngay 120k (áp dụng cho các đơn hàng trên 500k)</div>
+                </div>
+                <div class="bg-white px-2 rounded-md">
+                    <?php GetProductByCategory($slug_khuyen_mai, null, true, true) ?>
+                </div>
+            </div>
+        </div>
+
         <div class="container_product_list_home_page">
             <?php GetProductByCategory('may-lanh', 8) ?>
             <?php GetProductByCategory('tu-lanh', 8) ?>
+            <?php GetProductByCategory('may-giat', 8) ?>
         </div>
 
 

@@ -121,17 +121,18 @@
 
 <body <?php body_class(); ?>>
 	<?php wp_body_open(); ?>
+	<?php $upload_dir = wp_get_upload_dir(); ?>
 	<div id="page" class="site">
 		<header id="masthead" class="site-header">
 			<div class="site-branding layout_container ">
-				<div class="flex !py-[8.5px] items-center justify-between">
-					<div class="w-[178px] h-[100%]">
+				<div class="header-top flex !py-[8.5px] items-center justify-between">
+					<div class="w-[178px] logo h-[100%]">
 						<?php
 						the_custom_logo();
 						?>
 					</div>
-					<div class="w-[50%] flex items-center gap-[15px]">
-						<div class="flex flex-col btn bg-[var(--main-color)]">
+					<div class="container-search w-[50%] flex items-center gap-[15px]">
+						<div class="flex chinhanh flex-col btn bg-[var(--main-color)]">
 							Hệ thống cửa hàng
 							<strong>(8 chi nhánh)</strong>
 						</div>
@@ -145,7 +146,7 @@
 
 					<div class="select w-[28%] flex justify-between">
 						<a href="#" class="select-item">
-							<img src="<?php $upload_dir = wp_get_upload_dir();
+							<img src="<?php
 										echo $upload_dir['baseurl']; ?>/2024/09/hea_phone.webp" alt="">
 							<div class="flex flex-col leading-4">Hotline <strong>1900 6750</strong></div>
 						</a>
@@ -168,15 +169,15 @@
 								</strong>
 							</div>
 						</a>
-						<a href="#" class="select-item">
+						<a href="<?php echo wc_get_page_permalink('myaccount'); ?>" class="select-item">
 							<div class="icon-header">
-								<img src="<?php $upload_dir = wp_get_upload_dir();
+								<img src="<?php
 											echo $upload_dir['baseurl']; ?>/2024/09/account.webp" alt="">
 							</div>
 						</a>
 						<a href="<?php echo wc_get_cart_url() ?>" class="select-item relative">
 							<div class="icon-header">
-								<img src="<?php $upload_dir = wp_get_upload_dir();
+								<img src="<?php
 											echo $upload_dir['baseurl']; ?>/2024/09/icon-cart.webp" alt="">
 							</div>
 							<p class="select-item-count absolute top-[-7px] right-0" style="width: 16px; height: 16px;"><?php echo WC()->cart->get_cart_contents_count() ?></p>
@@ -187,8 +188,8 @@
 			</div><!-- .site-branding -->
 
 			<nav id="site-navigation" class="main-navigation bg-[var(--main-color)] text-white" style="display: flex;">
-				<div class="z-10 bg-[var(--main-color)]" style="flex-grow: 1;"></div>
-				<div class="flex justify-between z-1" style=" max-width: 1170px; margin: auto;">
+				<div class="z-10 bg-[var(--main-color)] menu-left" style="flex-grow: 1; padding-right: 10px;"></div>
+				<div class="container-menu flex justify-between z-1" style=" max-width: 1190px; margin: auto;">
 					<?php
 					wp_nav_menu(
 						array(
@@ -197,7 +198,7 @@
 						)
 					);
 					?>
-					<div class="z-10 bg-[var(--main-color)] center">
+					<div class="z-10 bg-[var(--main-color)] center" style="padding-right: 10px;">
 						<div class="center pr-3">
 							<svg id="btn-prev-menu" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" style="fill: rgba(255, 255, 255, 1); cursor: pointer;">
 								<path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"></path>
@@ -208,7 +209,7 @@
 						</div>
 						<a href="#" class="py-1 center btn-sale pr-3">
 							<div class="center bg-white text-[var(--main-hover-color)] py-1 px-3 rounded-md font-[600] uppercase gap-1">
-								<img src="<?php $upload_dir = wp_get_upload_dir();
+								<img src="<?php
 											echo $upload_dir['baseurl']; ?>/2024/09/gift.webp" alt="" width="18" height="18">
 								<span style="font-size: 11px;">
 									Khuyến mãi
@@ -217,11 +218,11 @@
 						</a>
 					</div>
 				</div>
-				<div class="z-10 bg-[var(--main-color)]" style="flex-grow: 1;"></div>
+				<div class="z-10 bg-[var(--main-color)] menu-right" style="flex-grow: 1;"></div>
 			</nav><!-- #site-navigation -->
 			<?php if (!is_front_page()) { ?>
 				<div class="navigation py-3 bg-[#f5f5f5]">
-					<div class="layout_container text-[14px] center !justify-start gap-1">
+					<div class="layout_container lou-2 text-[14px] center !justify-start gap-1">
 						<a href="<?php echo get_home_url() ?>" class="!text-black">Trang chủ</a>
 						<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" style="fill: rgba(0, 0, 0, 1);margin-top: 2px;">
 							<path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path>

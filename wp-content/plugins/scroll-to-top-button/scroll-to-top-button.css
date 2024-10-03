@@ -1,0 +1,17 @@
+#scrollTopBtn {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    right: 1.5%;
+    padding: 3px;
+    background-color: #003c7c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 999;
+}
+
+#scrollTopBtn:hover {
+    background-color: #fa9e0f;
+}

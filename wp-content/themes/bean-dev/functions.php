@@ -17,11 +17,12 @@ if (! defined('_S_VERSION')) {
 
 function my_theme_enqueue_theme()
 {
-	wp_enqueue_style('output', get_template_directory_uri() . './dist/output.css', array(), '1.4');
-	wp_enqueue_style('custom-css', get_template_directory_uri() . '/custom.css', array(), '1.2');
+	wp_enqueue_style('output', get_template_directory_uri() . './dist/output.css', array(), '1.5');
+	wp_enqueue_style('custom-css', get_template_directory_uri() . '/custom.css', array(), '1.1');
 }
 
 add_action('wp_enqueue_scripts', 'my_theme_enqueue_theme');
+
 
 /**
  * Sets up theme defaults and registers support for various WordPress features.
@@ -367,7 +368,7 @@ function get_product_by_id($product_id)
 }
 
 
-function GetProductByCategory($category_slug = "", $limit = null)
+function GetProductByCategory($category_slug = "", $limit = null, $slider = false, $sale = false)
 {
 	$productList = get_all_product_info($limit);
 
@@ -425,9 +426,14 @@ function GetProductByCategory($category_slug = "", $limit = null)
 		}
 		echo '</div></div>';
 	}
-	ProductList($productList, $banners);
+	if ($slider) {
+		ProductSlider($productList, $sale);
+	} else {
+		ProductList($productList, $banners);
+	}
 	echo '</div>';
 }
+
 function enqueue_swiper_assets()
 {
 	// Thêm CSS của Swiper
@@ -469,7 +475,7 @@ function ProductList($productList, $banners)
 			 </path><circle cx="10.5" cy="19.5" r="1.5"></circle><circle cx="16.5" cy="19.5" r="1.5"></circle>
 			 </svg>
 			 </a>
-			   <a href="" class="add_to_cart_button product-item_icon">
+			   <a href="javascript:void(0)" class="yith-wcqv-button product-item_icon" data-product_id="' . esc_attr($product['id']) . '">
 			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
 			 <path d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5zm0 11c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4z">
 			 </path><path d="M12 10c-1.084 0-2 .916-2 2s.916 2 2 2 2-.916 2-2-.916-2-2-2z"></path></svg>
@@ -567,9 +573,6 @@ function my_custom_product_additional_information()
 			echo '</tr>';
 		}
 	}
-	if ($index <= 0) {
-		echo '<div>Chưa có chi tiết sản phẩm</div>';
-	}
 	echo '</table>';
 	echo '</div>';
 }
@@ -580,7 +583,7 @@ function my_custom_product_additional_information()
  * **/
 
 
-function ProductSlider($productList)
+function ProductSlider($productList, $sale = false)
 {
 	echo '<div class="swiper-container">'; // Thêm container của Swiper
 	echo '<div class="swiper-wrapper">'; // Thêm lớp này để chứa các sản phẩm
@@ -598,6 +601,7 @@ function ProductSlider($productList)
 
 		echo '<div class="product-item">';
 		echo '<img src="' . esc_url($product['brand_photo']) . '" alt="' . esc_html($product['name']) . '" class="brand_photo"/>';
+		echo $sale ? '<p class="result-label temp1"><img width="15" height="15" alt="Giảm sốc" src="http://localhost/beanDienMay/wp-content/uploads/2024/10/icon_gs.webp"><span>Giảm sốc</span></p>' : '';
 		echo '<div class="product-item_image">';
 		echo '<a href="' . $product['link'] . '"><img src="' . esc_url($product['image']) . '" alt="' . esc_html($product['name']) . '" />';
 		echo '<div class="product-item_icon-container">
@@ -607,7 +611,7 @@ function ProductSlider($productList)
 			 </path><circle cx="10.5" cy="19.5" r="1.5"></circle><circle cx="16.5" cy="19.5" r="1.5"></circle>
 			 </svg>
 			 </a>
-			   <a href="" class="add_to_cart_button product-item_icon">
+			  <a href="javascript:void(0)" class="yith-wcqv-button product-item_icon" data-product_id="' . esc_attr($product['id']) . '">
 			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
 			 <path d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5zm0 11c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4z">
 			 </path><path d="M12 10c-1.084 0-2 .916-2 2s.916 2 2 2 2-.916 2-2-.916-2-2-2z"></path></svg>
@@ -655,6 +659,20 @@ function ProductSlider($productList)
             autoplay: {
                 delay: 5000,
             },
+			 breakpoints: {
+               400: {
+                slidesPerView: 2, // Hiển thị 1 slide khi chiều rộng màn hình nhỏ hơn 640px
+                spaceBetween: 10,
+            },
+            600: {
+                slidesPerView: 2, // Hiển thị 2 slide khi chiều rộng màn hình từ 900px đến 1199px
+                spaceBetween: 10,
+            },
+            900: {
+                slidesPerView: 3, // Hiển thị 3 slide khi chiều rộng màn hình từ 640px đến 899px
+                spaceBetween: 20,
+            },
+            }
         });
     });
     </script>';
@@ -730,3 +748,43 @@ function get_cart_count()
 	echo WC()->cart->get_cart_contents_count();
 	wp_die(); // Ngăn chặn việc xuất thêm thông tin
 }
+
+
+//custom post type
+function create_policy_post_type()
+{
+	$labels = array(
+		'name'                  => 'Chính sách',
+		'singular_name'         => 'Chính sách',
+		'menu_name'             => 'Chính sách',
+		'name_admin_bar'        => 'Chính sách',
+		'add_new'               => 'Thêm mới',
+		'add_new_item'          => 'Thêm chính sách mới',
+		'new_item'              => 'Chính sách mới',
+		'edit_item'             => 'Chỉnh sửa chính sách',
+		'view_item'             => 'Xem chính sách',
+		'all_items'             => 'Tất cả chính sách',
+		'search_items'          => 'Tìm chính sách',
+		'not_found'             => 'Không tìm thấy chính sách',
+		'not_found_in_trash'    => 'Không tìm thấy chính sách trong thùng rác',
+	);
+
+	$args = array(
+		'labels'                => $labels,
+		'public'                => true,
+		'publicly_queryable'    => true,
+		'show_ui'               => true,
+		'show_in_menu'          => true,
+		'query_var'             => true,
+		'rewrite'               => array('slug' => '', 'with_front' => false), // Xóa slug
+		'capability_type'       => 'post',
+		'has_archive'           => true,
+		'hierarchical'          => false,
+		'menu_position'         => null,
+		'supports'              => array('title', 'editor', 'thumbnail'),
+	);
+
+	register_post_type('policy', $args);
+}
+
+add_action('init', 'create_policy_post_type');

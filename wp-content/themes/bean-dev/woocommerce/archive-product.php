@@ -58,7 +58,8 @@ get_header('shop');
 		<?php
 		// lấy slug của page hiển tại trong trang archive
 		$term = get_queried_object();
-		$slug = $term->slug;
+		$slug = isset($term->slug) ? $term->slug : 'all';
+
 		?>
 
 		<div class="filter-container">
