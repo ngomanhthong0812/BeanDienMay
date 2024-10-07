@@ -77,6 +77,48 @@
 
 <?php wp_footer(); ?>
 
+
+<!-- Add to favorite -->
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const wishlistButtons = document.querySelectorAll('.add_to_wishlist');
+
+		wishlistButtons.forEach(button => {
+			button.addEventListener('click', function(event) {
+				event.preventDefault(); // Ngăn chặn hành động mặc định
+
+
+				const productId = this.getAttribute('data-product-id');
+				const nonce = '<?php echo esc_attr(wp_create_nonce('add_to_wishlist')); ?>';
+
+				// Gửi yêu cầu AJAX để thêm vào danh sách yêu thích
+				fetch(`?add_to_wishlist=${productId}&_wpnonce=${nonce}`, {
+						method: 'GET',
+						credentials: 'same-origin'
+					})
+					.then(response => {
+						if (response.ok) {
+							// Hiển thị thông báo thành công
+							document.getElementById('wishlist-message').style.visibility = 'visible';
+							document.getElementById('wishlist-message').style.transform = 'translateX(0px)';
+							document.getElementById('wishlist-message').style.opacity = '1';
+							console.log(document.getElementById('wishlist-message'));
+
+							setTimeout(() => {
+								document.getElementById('wishlist-message').style.visibility = 'hidden';
+								document.getElementById('wishlist-message').style.transform = 'translateX(50px)';
+								document.getElementById('wishlist-message').style.opacity = '0';
+							}, 3000); // Ẩn thông báo sau 3 giây
+							console.log("da nhan");
+						} else {
+							console.error('Có lỗi xảy ra khi thêm vào danh sách yêu thích.');
+						}
+					})
+					.catch(error => console.error('Lỗi:', error));
+			});
+		});
+	});
+</script>
 </body>
 
 </html>

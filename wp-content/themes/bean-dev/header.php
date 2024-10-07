@@ -150,7 +150,8 @@
 										echo $upload_dir['baseurl']; ?>/2024/09/hea_phone.webp" alt="">
 							<div class="flex flex-col leading-4">Hotline <strong>1900 6750</strong></div>
 						</a>
-						<a href="#" class="select-item flex">
+						<?php $wishList = get_page_by_path('danh-sach-yeu-thich'); ?>
+						<a href="<?php echo get_permalink($wishList->ID); ?>" class="select-item flex">
 							<div class="icon-header">
 								<svg viewBox="0 0 471.701 471.701" style="fill: var(--main-color);">
 									<path d=" M433.601,67.001c-24.7-24.7-57.4-38.2-92.3-38.2s-67.7,13.6-92.4,38.3l-12.9,12.9l-13.1-13.1
@@ -162,10 +163,19 @@
 									C444.801,187.101,434.001,213.101,414.401,232.701z"></path>
 								</svg>
 							</div>
+							<?php
+							global $wpdb;
+							$user_id = get_current_user_id();
+							$wishlist_items = $wpdb->get_results(
+								$wpdb->prepare("SELECT * FROM wp_yith_wcwl WHERE user_id = %d", $user_id)
+							);
+							$count = count($wishlist_items);
+
+							?>
 							<div class="leading-4">
 								Yêu thích
 								<strong class="center gap-1">
-									<p class="select-item-count">0</p>sản phẩm
+									<p class="select-item-count"><?php echo $count ?></p>sản phẩm
 								</strong>
 							</div>
 						</a>
@@ -207,7 +217,8 @@
 								<path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path>
 							</svg>
 						</div>
-						<a href="#" class="py-1 center btn-sale pr-3">
+						<?php $sale_link_page = get_page_by_path('khuyen-mai') ?>
+						<a href="<?php echo get_permalink($sale_link_page) ?>" class="py-1 center btn-sale pr-3">
 							<div class="center bg-white text-[var(--main-hover-color)] py-1 px-3 rounded-md font-[600] uppercase gap-1">
 								<img src="<?php
 											echo $upload_dir['baseurl']; ?>/2024/09/gift.webp" alt="" width="18" height="18">

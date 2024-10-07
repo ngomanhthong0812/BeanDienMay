@@ -45,7 +45,7 @@ if (post_password_required()) {
 		do_action('woocommerce_before_single_product_summary');
 		?>
 
-		<!-- <div class="summary entry-summary">
+		<div class="summary entry-summary">
 			<?php
 			/**
 			 * Hook: woocommerce_single_product_summary.
@@ -59,11 +59,11 @@ if (post_password_required()) {
 			 * @hooked woocommerce_template_single_sharing - 50
 			 * @hooked WC_Structured_Data::generate_product_data() - 60
 			 */
-			do_action('woocommerce_single_product_summary');
+			// do_action('woocommerce_single_product_summary');
 			?>
-		</div> -->
+		</div>
 		<?php
-		$getProduct = get_product_by_id($product->get_id())
+		$getProduct = get_product_by_id($product->get_id());
 		?>
 
 		<?php
@@ -96,6 +96,47 @@ if (post_password_required()) {
 					</div>
 				</div>
 			<?php endif ?>
+
+			<?php
+			// Giả sử bạn đã có ID sản phẩm hiện tại
+			$product_id = get_the_ID(); // Hoặc ID sản phẩm mà bạn muốn lấy sản phẩm bán thêm
+
+			// Lấy các sản phẩm bán thêm
+			$upsell_ids = get_post_meta($product_id, '_upsell_ids', true);
+
+			// Nếu không có sản phẩm bán thêm, lấy ID từ mảng
+			if (empty($upsell_ids)) {
+				$upsell_ids = array();
+			}
+
+
+			// Hiển thị sản phẩm bán thêm
+			if (!empty($upsell_ids)) {
+				echo '<ul class="upsell-products">';
+
+				$count = 0;
+
+				foreach ($upsell_ids as $upsell_id) {
+					if ($count >= 4) {
+						break; // Nếu đã đủ 4 sản phẩm thì thoát khỏi vòng lặp
+					}
+
+					$upsell_product = wc_get_product($upsell_id);
+					$name = get_field('loai', $upsell_id);
+
+					// Hiển thị thông tin sản phẩm
+					echo '<li>';
+					echo '<a href="' . esc_url(get_permalink($upsell_id)) . '">';
+					echo '<h3>' . $name . '</h3>'; // Tên sản phẩm
+					echo '<span>' . wp_kses_post($upsell_product->get_price()) ?  number_format(wp_kses_post($upsell_product->get_price()), 0, '', '.') . 'đ' : 'Liên hệ' . '</span>';
+					echo '</a>';
+					echo '</li>';
+				}
+
+				echo '</ul>';
+			}
+			?>
+
 			<div class="sale_special border text-[14px] rounded-md">
 				<div class="bg-[#f6f6f6] font-[500] p-2">Khuyến mãi đặc biệt !!!</div>
 				<ul class="m-0">

@@ -67,9 +67,9 @@ get_header();
         </div>
 
         <div class="container_product_list_home_page">
-            <?php GetProductByCategory('may-lanh', 8) ?>
-            <?php GetProductByCategory('tu-lanh', 8) ?>
-            <?php GetProductByCategory('may-giat', 8) ?>
+            <?php GetProductByCategory('may-lanh', 8, false, false, true); ?>
+            <?php GetProductByCategory('tu-lanh', 8, false, false, true); ?>
+            <?php GetProductByCategory('may-giat', 8, false, false, true); ?>
         </div>
 
 

@@ -17,8 +17,8 @@ if (! defined('_S_VERSION')) {
 
 function my_theme_enqueue_theme()
 {
-	wp_enqueue_style('output', get_template_directory_uri() . './dist/output.css', array(), '1.5');
-	wp_enqueue_style('custom-css', get_template_directory_uri() . '/custom.css', array(), '1.1');
+	wp_enqueue_style('output', get_template_directory_uri() . './dist/output.css', array(), '1.2');
+	wp_enqueue_style('custom-css', get_template_directory_uri() . '/custom.css', array(), '1.3');
 }
 
 add_action('wp_enqueue_scripts', 'my_theme_enqueue_theme');
@@ -291,12 +291,11 @@ function get_product_info_by_category($category_slug, $limit)
 
 	return $product_info;
 }
-function get_all_product_info($limit)
+function get_all_product_info()
 {
 	$products = get_posts(array(
 		'post_type' => 'product',
 		'numberposts' => -1,
-		'posts_per_page' => $limit,
 		'post_status' => 'publish'
 	));
 
@@ -368,9 +367,9 @@ function get_product_by_id($product_id)
 }
 
 
-function GetProductByCategory($category_slug = "", $limit = null, $slider = false, $sale = false)
+function GetProductByCategory($category_slug = "", $limit = null, $slider = false, $sale = false, $isCategories = false)
 {
-	$productList = get_all_product_info($limit);
+	$productList = get_all_product_info();
 
 	if ($category_slug !== "") {
 		$productList = get_product_info_by_category($category_slug, $limit);
@@ -401,7 +400,7 @@ function GetProductByCategory($category_slug = "", $limit = null, $slider = fals
 	}
 
 	echo '<div>';
-	if ($limit != null) {
+	if ($isCategories) {
 		echo '<div class="title-container"><div class="title">';
 		$category = get_term_by('slug', $category_slug, 'product_cat');
 		$thumbnail_id = get_term_meta($category->term_id, 'thumbnail_id', true);
@@ -457,34 +456,46 @@ function ProductList($productList, $banners)
 	foreach ($productList as $product) {
 		$regular_price = (float) $product['regular_price'];
 		$sale_price = (float) $product['sale_price'];
-		$format_regular_price = $product['regular_price'] ? number_format($product['regular_price'], 0, '', '.') . 'đ' : '';
-		$format_sale_price = $product['sale_price'] ? number_format($product['sale_price'], 0, '', '.') . 'đ' : 'Liên hệ';
-
 		$discount_percentage = 0;
-		if ($regular_price > 0) {
+		if ($product['sale_price'] && $product['regular_price']) {
+			$format_sale_price = number_format($product['sale_price'], 0, '', '.') . 'đ';
+			$format_regular_price =  number_format($product['regular_price'], 0, '', '.') . 'đ';
 			$discount_percentage = (($regular_price - $sale_price) / $regular_price) * 100;
+		} else if (!$product['sale_price'] && !$product['regular_price']) {
+			$format_sale_price = 'Liên hệ';
+			$format_regular_price =  '';
+		} else {
+			$format_sale_price = number_format($product['regular_price'], 0, '', '.') . 'đ';
+			$format_regular_price =  '';
 		}
+
 		echo '<div class="product-item">';
 		echo '<img src="' . esc_url($product['brand_photo']) . '" alt="' . esc_html($product['name']) . '" class="brand_photo"/>';
 		echo '<div class="product-item_image">';
 		echo '<a href=' . $product['link'] . '><img src="' . esc_url($product['image']) . '" alt="' . esc_html($product['name']) . '" />';
 		echo '<div class="product-item_icon-container">
 		     <a href="' . esc_url(wc_get_cart_url()) . '?add-to-cart=' . esc_attr($product['id']) . '" class="add_to_cart_button product-item_icon">
-			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
-			 <path d="M21 4H2v2h2.3l3.521 9.683A2.004 2.004 0 0 0 9.7 17H18v-2H9.7l-.728-2H18c.4 0 .762-.238.919-.606l3-7A.998.998 0 0 0 21 4z">
-			 </path><circle cx="10.5" cy="19.5" r="1.5"></circle><circle cx="16.5" cy="19.5" r="1.5"></circle>
-			 </svg>
+			    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+			    <path d="M21 4H2v2h2.3l3.521 9.683A2.004 2.004 0 0 0 9.7 17H18v-2H9.7l-.728-2H18c.4 0 .762-.238.919-.606l3-7A.998.998 0 0 0 21 4z">
+			    </path><circle cx="10.5" cy="19.5" r="1.5"></circle><circle cx="16.5" cy="19.5" r="1.5"></circle>
+			    </svg>
 			 </a>
-			   <a href="javascript:void(0)" class="yith-wcqv-button product-item_icon" data-product_id="' . esc_attr($product['id']) . '">
-			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
-			 <path d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5zm0 11c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4z">
-			 </path><path d="M12 10c-1.084 0-2 .916-2 2s.916 2 2 2 2-.916 2-2-.916-2-2-2z"></path></svg>
+			 <a href="javascript:void(0)" class="yith-wcqv-button product-item_icon" data-product_id="' . esc_attr($product['id']) . '">
+			    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+			    <path d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5zm0 11c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4z">
+			    </path><path d="M12 10c-1.084 0-2 .916-2 2s.916 2 2 2 2-.916 2-2-.916-2-2-2z"></path></svg>
 			 </a>
-			    <a href="" class="add_to_cart_button product-item_icon">
-			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
-			 <path d="M20.205 4.791a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412L12 21.414l8.207-8.207c2.354-2.353 2.355-6.049-.002-8.416z"></path>
-			 </svg>
-			 </a>
+			<a href="javascript:void(0);" 
+			  class="add_to_wishlist single_add_to_wishlist product-item_icon" 
+			   data-product-id="' . esc_attr($product['id']) . '"
+			   data-product-type="simple"
+			   data-original-product-id="' . esc_attr($product['id']) . '" 
+               data-title="Add to wishlist" 
+               rel="nofollow">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+                 <path d="M20.205 4.791a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412L12 21.414l8.207-8.207c2.354-2.353 2.355-6.049-.002-8.416z"></path>
+                 </svg>
+             </a>
 		     </div>';
 		echo '</div>';
 		echo '</a>';
@@ -493,7 +504,7 @@ function ProductList($productList, $banners)
 		echo '<p class="product-item_price">' . $format_sale_price . '</p>';
 		echo '<div class="flex gap-2 item-center ">';
 		echo '<p class="product-item_regular_price center"> ' . $format_regular_price . '</p>';
-		echo '<p class="text-[#c40025] text-[15px]">(-' . esc_html(number_format($discount_percentage, 0)) . '%)</p>';
+		echo '<p class="text-[#c40025] text-[15px] ' . ($discount_percentage == 0 ? 'invisible' : 'visible') . '">(-' . esc_html(number_format($discount_percentage, 0)) . '%)</p>';
 		echo '</div>';
 		echo '</div>';
 		foreach ($product['categories'] as $category) {
@@ -502,6 +513,9 @@ function ProductList($productList, $banners)
 		echo '</div>';
 	}
 	echo '</div>';
+	echo ' <div id="wishlist-message">
+			 Sản phẩm đã được thêm vào danh sách yêu thích!
+		  </div>';
 	if (!empty($banners[1])) {
 		echo '<a  class="banner-item" href="' . $category_link . '"><img src="' . $banners[1]['url'] . '"/></a>';
 	}
@@ -592,11 +606,17 @@ function ProductSlider($productList, $sale = false)
 		echo '<div class="swiper-slide">'; // Thay đổi lớp sản phẩm thành swiper-slide
 		$regular_price = (float) $product['regular_price'];
 		$sale_price = (float) $product['sale_price'];
-		$format_regular_price = $product['regular_price'] ? number_format($product['regular_price'], 0, '', '.') . 'đ' : '';
-		$format_sale_price = $product['sale_price'] ? number_format($product['sale_price'], 0, '', '.') . 'đ' : 'Liên hệ';
 		$discount_percentage = 0;
-		if ($regular_price > 0) {
+		if ($product['sale_price'] && $product['regular_price']) {
+			$format_sale_price = number_format($product['sale_price'], 0, '', '.') . 'đ';
+			$format_regular_price =  number_format($product['regular_price'], 0, '', '.') . 'đ';
 			$discount_percentage = (($regular_price - $sale_price) / $regular_price) * 100;
+		} else if (!$product['sale_price'] && !$product['regular_price']) {
+			$format_sale_price = 'Liên hệ';
+			$format_regular_price =  '';
+		} else {
+			$format_sale_price = number_format($product['regular_price'], 0, '', '.') . 'đ';
+			$format_regular_price =  '';
 		}
 
 		echo '<div class="product-item">';
@@ -616,11 +636,17 @@ function ProductSlider($productList, $sale = false)
 			 <path d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5zm0 11c-2.206 0-4-1.794-4-4s1.794-4 4-4 4 1.794 4 4-1.794 4-4 4z">
 			 </path><path d="M12 10c-1.084 0-2 .916-2 2s.916 2 2 2 2-.916 2-2-.916-2-2-2z"></path></svg>
 			 </a>
-			    <a href="" class="add_to_cart_button product-item_icon">
-			 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
-			 <path d="M20.205 4.791a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412L12 21.414l8.207-8.207c2.354-2.353 2.355-6.049-.002-8.416z"></path>
-			 </svg>
-			 </a>
+			   <a href="javascript:void(0);" 
+			  class="add_to_wishlist single_add_to_wishlist product-item_icon" 
+			   data-product-id="' . esc_attr($product['id']) . '"
+			   data-product-type="simple"
+			   data-original-product-id="' . esc_attr($product['id']) . '" 
+               data-title="Add to wishlist" 
+               rel="nofollow">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24">
+                 <path d="M20.205 4.791a5.938 5.938 0 0 0-4.209-1.754A5.906 5.906 0 0 0 12 4.595a5.904 5.904 0 0 0-3.996-1.558 5.942 5.942 0 0 0-4.213 1.758c-2.353 2.363-2.352 6.059.002 8.412L12 21.414l8.207-8.207c2.354-2.353 2.355-6.049-.002-8.416z"></path>
+                 </svg>
+             </a>
 		     </div>';
 		echo '</div>';
 		echo '</a>';
@@ -629,7 +655,7 @@ function ProductSlider($productList, $sale = false)
 		echo '<p class="product-item_price">' . $format_sale_price . '</p>';
 		echo '<div class="flex gap-2 item-center ">';
 		echo '<p class="product-item_regular_price center"> ' . $format_regular_price . '</p>';
-		echo '<p class="text-[#c40025] text-[15px]">(-' . esc_html(number_format($discount_percentage, 0)) . '%)</p>';
+		echo '<p class="text-[#c40025] text-[15px] ' . ($discount_percentage == 0 ? 'invisible' : 'visible') . '">(-' . esc_html(number_format($discount_percentage, 0)) . '%)</p>';
 		echo '</div>';
 		echo '</div>';
 		echo '</div>';
@@ -640,6 +666,10 @@ function ProductSlider($productList, $sale = false)
 	echo '<div class="swiper-button-next"></div>'; // Nút Next
 	echo '<div class="swiper-button-prev"></div>'; // Nút Prev
 	echo '</div>'; // Kết thúc swiper-container
+
+	echo ' <div id="wishlist-message">
+			 Sản phẩm đã được thêm vào danh sách yêu thích!
+		  </div>';
 
 	// Khởi tạo Swiper
 	echo '<script>
@@ -661,17 +691,21 @@ function ProductSlider($productList, $sale = false)
             },
 			 breakpoints: {
                400: {
-                slidesPerView: 2, // Hiển thị 1 slide khi chiều rộng màn hình nhỏ hơn 640px
+                slidesPerView: 2, 
                 spaceBetween: 10,
             },
             600: {
-                slidesPerView: 2, // Hiển thị 2 slide khi chiều rộng màn hình từ 900px đến 1199px
+                slidesPerView: 2, 
                 spaceBetween: 10,
             },
             900: {
-                slidesPerView: 3, // Hiển thị 3 slide khi chiều rộng màn hình từ 640px đến 899px
+                slidesPerView: 3,
                 spaceBetween: 20,
             },
+			1200: {
+                slidesPerView: 4, 
+                spaceBetween: 20,
+            }
             }
         });
     });
@@ -788,3 +822,51 @@ function create_policy_post_type()
 }
 
 add_action('init', 'create_policy_post_type');
+
+
+
+function display_products_by_category($atts)
+{
+	// Lấy slug từ thuộc tính của shortcode
+	$atts = shortcode_atts(array(
+		'slug' => '',
+		'limit' => null,
+		'slider' => false,
+		'sale' => false,
+		'isCategories' => false,
+	), $atts, 'products_by_category');
+
+	// Gọi hàm GetProductByCategory với slug và các tham số khác
+	ob_start(); // Bắt đầu output buffering
+	GetProductByCategory($atts['slug'], $atts['limit'], $atts['slider'], $atts['sale'], $atts['isCategories']);
+	return ob_get_clean(); // Trả về output đã được lưu
+}
+
+// Đăng ký shortcode
+add_shortcode('products_by_category', 'display_products_by_category');
+
+
+function get_link_page_by_slug($atts)
+{
+	// Lấy slug từ thuộc tính của shortcode
+	$atts = shortcode_atts(array(
+		'slug' => '',
+	), $atts, 'products_by_category');
+
+	// Kiểm tra slug
+	if (empty($atts['slug'])) {
+		return 'Slug không được để trống.';
+	}
+
+	// Lấy thông tin danh mục sản phẩm theo slug
+	$category = get_term_by('slug', $atts['slug'], 'product_cat');
+
+	// Kiểm tra xem danh mục có tồn tại không
+	if ($category) {
+		$link = get_term_link($category); // Lấy liên kết của danh mục
+		return '<a href="' . esc_url($link) . '" class="btn-see-more">Xem thêm</a>';
+	}
+}
+
+// Đăng ký shortcode
+add_shortcode('category_link', 'get_link_page_by_slug');
