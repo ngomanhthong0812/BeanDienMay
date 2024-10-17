@@ -1605,3 +1605,7 @@ p.no-comments {
     color: white !important;
     font-size: 15px;
 }
+
+.apsw-search-btn{
+    display: none;
+}

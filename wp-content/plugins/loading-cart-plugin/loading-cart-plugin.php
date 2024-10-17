@@ -13,14 +13,6 @@ function lcp_enqueue_scripts()
 }
 add_action('wp_enqueue_scripts', 'lcp_enqueue_scripts');
 
-// Thêm HTML cho biểu tượng loading vào trang
-function lcp_add_loading_icon()
-{
-    echo '<div id="lcp-loading" style="display:none;">
-            <div class="lcp-spinner"></div>
-          </div>';
-}
-add_action('wp_footer', 'lcp_add_loading_icon');
 
 function lcp_loading_icon()
 {
