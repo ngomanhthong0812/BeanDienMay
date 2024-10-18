@@ -75,6 +75,8 @@
 </footer><!-- #colophon -->
 </div><!-- #page -->
 
+<?php echo do_shortcode('[gtranslate]') ?>
+
 <?php wp_footer(); ?>
 
 

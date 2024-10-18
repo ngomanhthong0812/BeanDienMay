@@ -85,16 +85,31 @@ if (post_password_required()) {
 			</div>
 			<?php if ($getProduct['regular_price']): ?>
 				<div class="price text-[22px] pt-1">
-					Giá: <span class="text-[#cc2020] font-[600]"><?php echo $getProduct['sale_price'] ? number_format($getProduct['sale_price'], 0, '', '.') . 'đ' : 'Liên hệ' ?></span>
+					Giá: <span class="text-[#cc2020] font-[600]">
+						<?php
+						if ($getProduct['sale_price']) {
+							echo number_format($getProduct['sale_price']);
+						} elseif ($getProduct['regular_price']) {
+							echo number_format($getProduct['regular_price']);
+						} else {
+							echo 'Liên hệ';
+						}
+						?>đ</span>
 				</div>
-				<div class="flex text-[13px] text-[#868686] gap-3 pb-2">
-					<div class="regular_price">
-						Giá thị trường: <span class="line-through"><?php echo $getProduct['regular_price'] ? number_format($getProduct['regular_price'], 0, '', '.') . 'đ' : '' ?></span>
+				<?php if ($getProduct['regular_price'] && $getProduct['sale_price']): ?>
+					<div class="flex text-[13px] text-[#868686] gap-3 pb-2">
+						<div class="regular_price">
+							Giá thị trường: <span class="line-through">
+								<?php
+								if ($getProduct['regular_price']) {
+									echo number_format($getProduct['regular_price']);
+								}  ?>đ</span>
+						</div>
+						<div class="regular_price">
+							Tiết kiệm: <span><?php echo $getProduct['regular_price'] ? number_format((float) $getProduct['regular_price'] - (float) $getProduct['sale_price'], 0, '', '.') . 'đ' : '' ?> so với giá thị trường</span>
+						</div>
 					</div>
-					<div class="regular_price">
-						Tiết kiệm: <span><?php echo $getProduct['regular_price'] ? number_format((float) $getProduct['regular_price'] - (float) $getProduct['sale_price'], 0, '', '.') . 'đ' : '' ?> so với giá thị trường</span>
-					</div>
-				</div>
+				<?php endif ?>
 			<?php endif ?>
 
 			<?php

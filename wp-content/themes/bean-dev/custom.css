@@ -1606,6 +1606,22 @@ p.no-comments {
     font-size: 15px;
 }
 
-.apsw-search-btn{
+.apsw-search-btn {
+    display: none;
+}
+
+.gt_switcher-popup {
+    position: fixed;
+    right: 0;
+    top: 30%;
+    box-shadow: 0 0 3px rgb(198, 198, 198);
+    border-right: 0;
+    border-radius: 5px 0 0 5px;
+    padding: 4px;
+    display: flex !important;
+    z-index: 10;
+}
+
+.gt_switcher-popup span {
     display: none;
 }
